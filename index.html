@@ -84,6 +84,20 @@
     return sentences.slice(0, count).join(' ');
   }
 
+  function extractKeyPoints(text) {
+    // Remove asterisks, numbers, and extra spaces
+    text = text.replace(/\*/g, '').replace(/\d+\./g, '').replace(/\s+/g, ' ').trim();
+    // Split into lines
+    const lines = text.split(/\n|\r/).map(line => line.trim());
+    // Filter out lines that are too short or look like intros/conclusions
+    const keyLines = lines.filter(line =>
+      line.length > 20 && // Only lines with enough content
+      !/^in summary|^overall|^to conclude|^here|^sure|^certainly|^of course|^the product|^introduction|^conclusion/i.test(line)
+    );
+    // If no key lines found, fallback to the original text
+    return keyLines.length ? keyLines.join(' ') : text;
+  }
+
   async function handleQueryIntent(query, product) {
     if (query.includes("where") && query.includes("find")) {
       const productToFind = extractProductFromText(query);
@@ -102,8 +116,8 @@
         return;
       }
       const response = await askGemini(product, query);
-      const mainResponse = getMainSentences(response, 2); // 2 main sentences
-      speak(mainResponse);
+      const keyPoints = extractKeyPoints(response);
+      speak(keyPoints);
     }
   }
 
