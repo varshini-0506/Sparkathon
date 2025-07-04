@@ -75,6 +75,15 @@
     speechSynthesis.speak(utterance);
   }
 
+  function getMainSentences(text, count = 2) {
+    // Remove asterisks and extra spaces
+    text = text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+    // Split into sentences
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    // Return the first 'count' sentences joined together
+    return sentences.slice(0, count).join(' ');
+  }
+
   async function handleQueryIntent(query, product) {
     if (query.includes("where") && query.includes("find")) {
       const productToFind = extractProductFromText(query);
@@ -93,7 +102,8 @@
         return;
       }
       const response = await askGemini(product, query);
-      speak(response);
+      const mainResponse = getMainSentences(response, 2); // 2 main sentences
+      speak(mainResponse);
     }
   }
 
