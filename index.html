@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Walmart AI Voice Assistant</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .assistant-box {
+      border: 1px solid #ccc;
+      padding: 20px;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="assistant-box">
+  <h2>🛒 Walmart Voice Assistant</h2>
+  <p><strong>Product in focus:</strong> <span id="currentProduct">None</span></p>
+  <button id="micBtn">🎤 Ask a Question</button>
+  <p id="status"></p>
+  <p><strong>You said:</strong> <span id="transcript"></span></p>
+</div>
+
+<script>
+  const currentProduct = "Neutrogena Oil-Free Moisturizer";  // Update when a product is scanned
+  document.getElementById("currentProduct").innerText = currentProduct;
+
+  const micBtn = document.getElementById("micBtn");
+  const transcriptEl = document.getElementById("transcript");
+  const statusEl = document.getElementById("status");
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  micBtn.onclick = () => {
+    recognition.start();
+    statusEl.innerText = "Listening...";
+    micBtn.disabled = true;
+  };
+
+  recognition.onresult = async (event) => {
+    const userSpeech = event.results[0][0].transcript;
+    transcriptEl.innerText = userSpeech;
+    statusEl.innerText = "Processing...";
+
+    await handleQueryIntent(userSpeech.toLowerCase(), currentProduct);
+
+    micBtn.disabled = false;
+    statusEl.innerText = "Tap mic to ask again.";
+  };
+
+  recognition.onerror = (e) => {
+    statusEl.innerText = "Error: " + e.error;
+    micBtn.disabled = false;
+  };
+
+  function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utterance);
+  }
+
+  async function handleQueryIntent(query, product) {
+    if (query.includes("where") && query.includes("find")) {
+      const productToFind = extractProductFromText(query);
+      if (productToFind) {
+        triggerARNavigation(productToFind);
+        speak(`Navigating to ${productToFind}`);
+      } else {
+        speak("Sorry, I couldn't detect the product name.");
+      }
+    } else if (query.includes("help") || query.includes("assistance")) {
+      triggerHelpRequest();
+      speak("A store assistant has been notified.");
+    } else {
+      if (!product) {
+        speak("Please scan a product first.");
+        return;
+      }
+      const response = await askGemini(product, query);
+      speak(response);
+    }
+  }
+
+  function extractProductFromText(text) {
+    const words = text.split(" ");
+    const idx = words.indexOf("find");
+    return idx !== -1 ? words[idx + 1] : null;
+  }
+
+  function triggerARNavigation(productName) {
+    // Simulate event or function call to AR module
+    console.log("Trigger AR for:", productName);
+    window.dispatchEvent(new CustomEvent('navigateToProduct', { detail: productName }));
+  }
+
+  function triggerHelpRequest() {
+    // Simulate POST request
+    fetch('/api/alert-employee', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: "123", location: "Aisle 4" })
+    });
+    console.log("Help request sent.");
+  }
+
+  async function askGemini(productName, question) {
+    const GEMINI_API_KEY = "AIzaSyDP-wwcAHvoCQds1QawwPNB6mc3kYpXQxI"; // Replace this!
+
+    const prompt = `Product: ${productName}\nQuestion: ${question}`;
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }]
+              }
+            ]
+          })
+        }
+      );
+
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't answer that.";
+    } catch (err) {
+      console.error("Gemini error:", err);
+      return "There was a problem getting the answer.";
+    }
+  }
+</script>
+
+</body>
+</html>
