@@ -98,6 +98,25 @@
     return keyLines.length ? keyLines.join(' ') : text;
   }
 
+  function extractProductNames(text) {
+    // Remove asterisks, numbers, and extra spaces
+    text = text.replace(/\*/g, '').replace(/\d+\./g, '').replace(/\s+/g, ' ').trim();
+    // Split into lines
+    const lines = text.split(/\n|\r/).map(line => line.trim());
+    // Filter lines that look like product names (short, not sentences)
+    const nameLines = lines.filter(line =>
+      line.length > 2 && line.length < 50 && // Not too short or too long
+      /^[A-Za-z0-9 ,\-]+$/.test(line) &&    // Only letters, numbers, spaces, commas, hyphens
+      !line.match(/(alternatives|similar|option|try|consider|product|you can|another|other|here|for example|such as|may include|include|are:|is:)/i) // Not generic
+    );
+    // If no name lines, fallback to extracting comma-separated names from the first line
+    if (!nameLines.length && lines.length) {
+      const commaNames = lines[0].split(',').map(n => n.trim()).filter(n => n.length > 2 && n.length < 50);
+      return commaNames.length ? commaNames.join(', ') : lines[0];
+    }
+    return nameLines.join(', ');
+  }
+
   async function handleQueryIntent(query, product) {
     if (query.includes("where") && query.includes("find")) {
       const productToFind = extractProductFromText(query);
@@ -110,6 +129,20 @@
     } else if (query.includes("help") || query.includes("assistance")) {
       triggerHelpRequest();
       speak("A store assistant has been notified.");
+    } else if (
+      query.includes("alternative") ||
+      query.includes("alternatives") ||
+      query.includes("similar") ||
+      query.includes("other option") ||
+      query.includes("other options")
+    ) {
+      if (!product) {
+        speak("Please scan a product first.");
+        return;
+      }
+      const response = await askGemini(product, query);
+      const productNames = extractProductNames(response);
+      speak(productNames || "Sorry, I couldn't find alternatives.");
     } else {
       if (!product) {
         speak("Please scan a product first.");
