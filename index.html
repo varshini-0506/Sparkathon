@@ -4,24 +4,72 @@
   <meta charset="UTF-8">
   <title>Walmart AI Voice Assistant</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
     .assistant-box {
-      border: 1px solid #ccc;
-      padding: 20px;
-      max-width: 600px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
     }
-    button {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
+
+    h2 {
+      color: #0071ce;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    #currentProduct {
+      color: #333;
+      font-weight: bold;
+    }
+
+    #status, #transcript {
+      margin-top: 12px;
+      color: #666;
+    }
+
+    button#micBtn {
+      position: relative;
+      background-color: #ffc220;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
       border: none;
-      border-radius: 6px;
+      border-radius: 30px;
+      font-size: 16px;
       cursor: pointer;
+      transition: background 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      margin-top: 15px;
     }
+
+    button#micBtn:hover {
+      background-color: #f0b400;
+    }
+
     button:disabled {
-      background: #aaa;
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -76,40 +124,29 @@
   }
 
   function getMainSentences(text, count = 2) {
-    // Remove asterisks and extra spaces
     text = text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
-    // Split into sentences
     const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    // Return the first 'count' sentences joined together
     return sentences.slice(0, count).join(' ');
   }
 
   function extractKeyPoints(text) {
-    // Remove asterisks, numbers, and extra spaces
     text = text.replace(/\*/g, '').replace(/\d+\./g, '').replace(/\s+/g, ' ').trim();
-    // Split into lines
     const lines = text.split(/\n|\r/).map(line => line.trim());
-    // Filter out lines that are too short or look like intros/conclusions
     const keyLines = lines.filter(line =>
-      line.length > 20 && // Only lines with enough content
+      line.length > 20 &&
       !/^in summary|^overall|^to conclude|^here|^sure|^certainly|^of course|^the product|^introduction|^conclusion/i.test(line)
     );
-    // If no key lines found, fallback to the original text
     return keyLines.length ? keyLines.join(' ') : text;
   }
 
   function extractProductNames(text) {
-    // Remove asterisks, numbers, and extra spaces
     text = text.replace(/\*/g, '').replace(/\d+\./g, '').replace(/\s+/g, ' ').trim();
-    // Split into lines
     const lines = text.split(/\n|\r/).map(line => line.trim());
-    // Filter lines that look like product names (short, not sentences)
     const nameLines = lines.filter(line =>
-      line.length > 2 && line.length < 50 && // Not too short or too long
-      /^[A-Za-z0-9 ,\-]+$/.test(line) &&    // Only letters, numbers, spaces, commas, hyphens
-      !line.match(/(alternatives|similar|option|try|consider|product|you can|another|other|here|for example|such as|may include|include|are:|is:)/i) // Not generic
+      line.length > 2 && line.length < 50 &&
+      /^[A-Za-z0-9 ,\-]+$/.test(line) &&
+      !line.match(/(alternatives|similar|option|try|consider|product|you can|another|other|here|for example|such as|may include|include|are:|is:)/i)
     );
-    // If no name lines, fallback to extracting comma-separated names from the first line
     if (!nameLines.length && lines.length) {
       const commaNames = lines[0].split(',').map(n => n.trim()).filter(n => n.length > 2 && n.length < 50);
       return commaNames.length ? commaNames.join(', ') : lines[0];
@@ -161,13 +198,11 @@
   }
 
   function triggerARNavigation(productName) {
-    // Simulate event or function call to AR module
     console.log("Trigger AR for:", productName);
     window.dispatchEvent(new CustomEvent('navigateToProduct', { detail: productName }));
   }
 
   function triggerHelpRequest() {
-    // Simulate POST request
     fetch('/api/alert-employee', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
