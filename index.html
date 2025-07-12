@@ -4,83 +4,289 @@
   <meta charset="UTF-8">
   <title>Walmart AI Voice Assistant</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
       margin: 0;
-      background-color: #f2f2f2;
+      background: linear-gradient(135deg, #f2f2f2 0%, #e8e8e8 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .assistant-container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
     }
 
     .assistant-box {
-      background-color: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      padding: 30px;
-      max-width: 500px;
-      width: 100%;
+      background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
+      border-radius: 24px;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .assistant-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0071ce 0%, #ffc220 50%, #0071ce 100%);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      display: block;
     }
 
     h2 {
       color: #0071ce;
-      font-size: 1.5rem;
-      margin-bottom: 20px;
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 1rem;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .product-section {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-left: 4px solid #0071ce;
+    }
+
+    .product-label {
+      color: #666;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
     }
 
     #currentProduct {
       color: #333;
-      font-weight: bold;
+      font-weight: 700;
+      font-size: 1.1rem;
+      line-height: 1.4;
     }
 
-    #status, #transcript {
-      margin-top: 12px;
-      color: #666;
+    .mic-section {
+      text-align: center;
+      margin-bottom: 30px;
     }
 
     button#micBtn {
       position: relative;
-      background-color: #ffc220;
+      background: linear-gradient(135deg, #ffc220 0%, #f0b400 100%);
       color: #000;
-      font-weight: bold;
-      padding: 12px 20px;
+      font-weight: 700;
+      padding: 18px 32px;
       border: none;
-      border-radius: 30px;
-      font-size: 16px;
+      border-radius: 50px;
+      font-size: 1.1rem;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      margin-top: 15px;
+      gap: 12px;
+      box-shadow: 
+        0 8px 24px rgba(255, 194, 32, 0.3),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      min-width: 200px;
+      justify-content: center;
     }
 
     button#micBtn:hover {
-      background-color: #f0b400;
+      transform: translateY(-2px);
+      box-shadow: 
+        0 12px 32px rgba(255, 194, 32, 0.4),
+        0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    button#micBtn:active {
+      transform: translateY(0);
     }
 
     button:disabled {
-      background-color: #ccc;
-      color: #666;
+      background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+      color: #999;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    p {
-      font-size: 15px;
+    .status-section {
+      background: rgba(0, 113, 206, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    #status {
+      margin: 0;
+      color: #0071ce;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .transcript-section {
+      background: rgba(255, 194, 32, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .transcript-label {
+      color: #666;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    #transcript {
+      color: #333;
+      font-weight: 500;
+      font-size: 1rem;
       line-height: 1.5;
+      min-height: 24px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .feature {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid rgba(0, 113, 206, 0.1);
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .feature-text {
+      font-size: 0.8rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    @media (max-width: 480px) {
+      .assistant-box {
+        padding: 30px 20px;
+        border-radius: 20px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      button#micBtn {
+        padding: 16px 24px;
+        font-size: 1rem;
+        min-width: 180px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
 
-<div class="assistant-box">
-  <h2>🛒 Walmart Voice Assistant</h2>
-  <p><strong>Product in focus:</strong> <span id="currentProduct">None</span></p>
-  <button id="micBtn">🎤 Ask a Question</button>
-  <p id="status"></p>
-  <p><strong>You said:</strong> <span id="transcript"></span></p>
+<div class="assistant-container">
+  <div class="assistant-box">
+    <div class="header">
+      <span class="header-icon">🛒</span>
+      <h2>Walmart Voice Assistant</h2>
+      <p class="subtitle">Your AI shopping companion</p>
+    </div>
+
+    <div class="product-section">
+      <div class="product-label">Current Product</div>
+      <div id="currentProduct">None</div>
+    </div>
+
+    <div class="mic-section">
+      <button id="micBtn">
+        <span>🎤</span>
+        <span>Ask a Question</span>
+      </button>
+    </div>
+
+    <div class="status-section">
+      <p id="status">Ready to help you shop!</p>
+    </div>
+
+    <div class="transcript-section">
+      <span class="transcript-label">You said:</span>
+      <div id="transcript"></div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <span class="feature-icon">🔍</span>
+        <div class="feature-text">Find Products</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">💡</span>
+        <div class="feature-text">Get Info</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🔄</span>
+        <div class="feature-text">Alternatives</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🆘</span>
+        <div class="feature-text">Get Help</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -100,6 +306,7 @@
     recognition.start();
     statusEl.innerText = "Listening...";
     micBtn.disabled = true;
+    micBtn.classList.add('pulse');
   };
 
   recognition.onresult = async (event) => {
@@ -110,12 +317,14 @@
     await handleQueryIntent(userSpeech.toLowerCase(), currentProduct);
 
     micBtn.disabled = false;
+    micBtn.classList.remove('pulse');
     statusEl.innerText = "Tap mic to ask again.";
   };
 
   recognition.onerror = (e) => {
     statusEl.innerText = "Error: " + e.error;
     micBtn.disabled = false;
+    micBtn.classList.remove('pulse');
   };
 
   function speak(text) {
