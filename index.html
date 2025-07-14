@@ -482,6 +482,7 @@
       <button id="micBtn">
         <span>🎤</span>
       </button>
+      <button id="stopBtn" style="margin-top:12px;display:block;width:100%;background:#eee;color:#0071ce;font-weight:600;padding:10px 0;border:none;border-radius:20px;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.05);">⏹️ Stop Speaking</button>
     </div>
 
     <div class="status-section">
@@ -510,12 +511,13 @@
 </div>
 
 <script>
-  const currentProduct = "Neutrogena Oil-Free Moisturizer";  // Update when a product is scanned
+  const currentProduct = "Himalaya Gentle Daily care Shampoo";  // Update when a product is scanned
   document.getElementById("currentProduct").innerText = currentProduct;
 
   const micBtn = document.getElementById("micBtn");
   const statusEl = document.getElementById("status");
   const chatMessages = document.getElementById("chatMessages");
+  const stopBtn = document.getElementById("stopBtn");
 
   const recognition = new webkitSpeechRecognition();
   recognition.continuous = false;
@@ -527,6 +529,12 @@
     statusEl.innerText = "Listening...";
     micBtn.disabled = true;
     micBtn.classList.add('pulse');
+  };
+
+  stopBtn.onclick = () => {
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
   };
 
   recognition.onresult = async (event) => {
